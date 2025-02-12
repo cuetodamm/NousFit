@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+      "target": "es2020", // Usa ES2020 para compatibilidad con las nuevas funciones
+      "lib": ["dom", "dom.iterable", "esnext"], // Soporte para el DOM y características modernas de JS
+      "allowJs": true, // Permite usar archivos .js además de .ts/.tsx
+      "skipLibCheck": true, // Ignora comprobaciones de archivos de definición para mejorar la velocidad
+      "strict": true, // Activa verificaciones estrictas de TypeScript
+      "forceConsistentCasingInFileNames": true, // Enforce case-sensitive imports
+      "noEmit": true, // Next.js maneja la salida, no necesitamos emitir archivos .js
+      "esModuleInterop": true, // Mejora compatibilidad con módulos CommonJS
+      "moduleResolution": "node", // Usa el sistema de resolución de módulos de Node.js
+      "resolveJsonModule": true, // Permite importar archivos JSON
+      "isolatedModules": true, // Next.js requiere esto para habilitar compilación incremental
+      "jsx": "react-jsx", // Usa la nueva transformación JSX de React
+      "incremental": true // Habilita compilación incremental para mejorar velocidad
+    },
+    "include": [
+      "next-env.d.ts", // Archivo generado automáticamente por Next.js para tipos
+      "**/*.ts", // Incluye archivos .ts
+      "**/*.tsx" // Incluye archivos .tsx
+    ],
+    "exclude": ["node_modules"] // Excluye dependencias instaladas
+  }
