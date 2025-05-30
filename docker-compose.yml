@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  node-backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - python-api
+      - postgres-db
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres-db:5432/nousfit
+
+  python-api:
+    build: ./backend/python_api
+    ports:
+      - "5000:5000"
+
+  postgres-db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: nousfit
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
