@@ -1,6 +1,6 @@
 "use client";                                             // Importante para usar hooks en Next.js
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AiOutlineQuestionCircle } from "react-icons/ai";
 
 const InfoTooltip = ({ message }) => {
@@ -51,6 +51,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
+  const [hydrated, setHydrated] = useState("");
   const [formData, setFormData] = useState({
     nombre: "",
     apellidos: "",
@@ -66,6 +67,8 @@ export default function LoginPage() {
     cartaResponsiva: null,
     certificadoMedico: null
   });
+  
+  
 
   
   const validateCorreo = (correo) => {
@@ -165,27 +168,33 @@ export default function LoginPage() {
 
         <div className="h-screen flex p-5">
 
-          <div className="w-1/2 flex flex-col items-justify justify-center box text-black-500 p-7">
-            <h1 className="text-2xl text-center font-bold mb-4">¡Bienvenido a NousFit!</h1>
-            <p className="text-lg  max-w-md">
-              Para poder ingresar debes colocar correo y contraseña
-              previamente registrados.
-            </p>
-            <p className="text-lg  max-w-md">
-              ¿No es posible iniciar sesion? Revisa tus datos.
-            </p>
-            <p className="text-lg text-justify max-w-md">
-              ¿Sigues sin poder acceder? ¡Prueba registrandote!
-            </p>
-            <p className="text-lg text-justify max-w-md">
-              En cada signo de interrogación podrás ver información de ayuda para llenar en cada campo, solo dale click al icono.
-            </p>
-            <p className="text-lg text-justify max-w-md">
-              Para mayor información de los documentos a digitalizar, puedes acercarte con el personal 
-              responsable del gimnasio universitario.
-            </p>
+          <div className="w-1/2 flex flex-col items-justify justify-center box1  text-black-500 p-7">
+            <div>
+              <div className="box items-justify justify-center p-7">
+                <h1 className="text-2xl text-center font-bold mb-4">¡Bienvenido a NousFit!</h1>
+                <p className="text-lg  max-w-md">
+                  Para poder ingresar debes colocar correo y contraseña
+                  previamente registrados.
+                </p>
+                <p className="text-lg  max-w-md">
+                  ¿No es posible iniciar sesion? Revisa tus datos.
+                </p>
+                <p className="text-lg text-justify max-w-md">
+                  ¿Sigues sin poder acceder? ¡Prueba registrandote!
+                </p>
+                <p className="text-lg text-justify max-w-md">
+                  En cada signo de interrogación podrás ver información de ayuda para llenar en cada campo, solo dale click al icono.
+                </p>
+                <p className="text-lg text-justify max-w-md">
+                  Para mayor información de los documentos a digitalizar, puedes acercarte con el personal 
+                  responsable del gimnasio universitario.
+                </p>
+              </div>
+              <div className="flex justify-center items-center">
+                <img src="/UAEMex_escudo.png" className="escudo" />
+              </div>
+            </div>
           </div>
-
           <div className="w-1/2 flex flex-col items-justify justify-center box p-7">
             {/* Botones dinámicos para alternar entre login y registro */}
             <div className="relative mb-6 flex items-justify justify-center cursor-pointer">

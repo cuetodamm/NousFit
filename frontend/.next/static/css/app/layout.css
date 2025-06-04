@@ -647,6 +647,12 @@ body {
   background-position: left;
   z-index: 0;
 }
+.escudo {
+  position: relative;
+  align-items: center !important;
+  width: 55%;
+  height: 55%;
+}
 .form-container {
   position: relative;
   z-index: 10;
@@ -663,8 +669,14 @@ body {
   background-color: rgba(217, 217, 217, 0.87) !important;
   border-radius: 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  width: 40%;
-  max-width: 50%;
+  width: 100%;
+  max-width: 100%;
+  margin: auto;
+}
+.box1 {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
   margin: auto;
 }
 .buttonSI {

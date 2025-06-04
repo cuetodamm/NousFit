@@ -24,7 +24,15 @@ body {
   background-repeat: repeat-y;
   background-size: 60%;
   background-position: left;
-  z-index: 0; /* ✅ Asegura que el SVG esté arriba del degradado */
+  z-index: 0; /* Asegura que el SVG esté arriba del degradado */
+}
+
+.escudo {
+  
+  position: relative;
+  align-items: center !important;
+  width: 55%;
+  height: 55%;
 }
 
 .form-container {
@@ -43,8 +51,14 @@ body {
   background-color: rgba(217, 217, 217, 0.87) !important;
   border-radius: 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  width: 40%;
-  max-width: 50%;
+  width: 100%;
+  max-width: 100%;
+  margin: auto;
+}
+.box1 {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
   margin: auto;
 }
 
@@ -80,6 +94,7 @@ body {
   background-color: #1A7730;
   color: #A09010;
 }
+
 
 input[type="file"] {
   width: 100%;  /*Mantiene el ancho adecuado */
