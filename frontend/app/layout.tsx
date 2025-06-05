@@ -1,10 +1,9 @@
-'use client';
-
+"use client";
 
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,31 +15,23 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
 export default function RootLayout({ children }) {
-  const router = useRouter();
-  const pathname = usePathname();             //Detecta la página actual
   const [authenticated, setAuthenticated] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token"); // Verifica si hay sesión activa
-    setAuthenticated(!!token);
-
-    if (!token && pathname === "/login") {
-      router.push("/login"); // Redirige al login si no está autenticado
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      setAuthenticated(!!token);
     }
-  }, [pathname]);
+  }, []);
 
   return (
     <html lang="es">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {pathname === "/login" || authenticated ? (
-          <>
-            <main className="flex-1">{children}</main>
-          </>
-        ) : null}
+        {authenticated || pathname === "/login" ? <main className="flex-1">{children}</main> : null}
       </body>
     </html>
   );
 }
-
