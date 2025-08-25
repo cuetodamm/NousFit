@@ -19,6 +19,8 @@ model Usuario {
   genero           String
   numeroTutor      String?
   datosBiometricos Json?
+  imagenDetectada  Json?
+  esAdmin          Boolean     @default(false)
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
   documentos       Documento[]

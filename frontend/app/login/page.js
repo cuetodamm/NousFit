@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { AiOutlineQuestionCircle } from "react-icons/ai";
+import { useRouter } from "next/navigation";
 
 const InfoTooltip = ({ message }) => {
   const [visible, setVisible] = useState(false);
@@ -51,7 +52,6 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
-  const [hydrated, setHydrated] = useState("");
   const [formData, setFormData] = useState({
     nombre: "",
     apellidos: "",
@@ -67,8 +67,8 @@ export default function LoginPage() {
     cartaResponsiva: null,
     certificadoMedico: null
   });
-  
-  
+  const router = useRouter();
+  const [isNewUser, setIsNewUser] = useState(null);
 
   
   const validateCorreo = (correo) => {
@@ -83,7 +83,7 @@ export default function LoginPage() {
     }
     setFormData({
        ... formData,
-        [e.target.name]: e.target.type == "file" ? e.target.files[0] : e.target.value
+        [e.target.name]: e.target.type === "file" ? e.target.files[0] : e.target.value
     });
   };
 
@@ -129,35 +129,50 @@ export default function LoginPage() {
   };
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    if (!validateCorreo(correo)) {
-      setError("Correo no válido, intenta con otro.");
+  if (!validateCorreo(correo)) {
+    setError("Correo no válido, intenta con otro.");
+    return;
+  }
+
+  try {
+  const response = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ correo, password }),
+  });
+
+  const data = await response.json();
+  console.log("Respuesta del backend:", data); // 🔥 Revisa si `usuario` está presente
+
+  if (response.ok) {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("isNewUser", isNewUser);
+
+    if (!data.usuario) {
+      console.error("Error: usuario no recibido en la respuesta.");
+      setError("Error: No se pudo recuperar el usuario, inténtalo de nuevo.");
       return;
     }
 
-    try {                                                 //Solicitud de login al backend
-      const response = await fetch("/api/auth/login", {
-        method: "POST", //Http de la solicitud
-        headers: { "Content-Type": "application/json" },  //
-        body: JSON.stringify({ correo, password }),        //Conversion de datos a formato JSON
-      });
-      const data = await response.json();
+    localStorage.setItem("usuario", JSON.stringify(data.usuario));
 
-      if (response.ok) {
-        localStorage.setItem("token", data.token);
-        window.location.href = "/dashboard"                        //Redireccionamiento al dashboard
-        console.log("login exitoso, ¡Bienvenido!", data); 
-      } else {
-        setError(data.message || "Error al iniciar sesión.");
-      }
-    } catch (error) {
-      setError("Error de conexión con el servidor.");
+    if (data.usuario.esAdmin) {
+      router.push("/dashboard");
+    } else {
+      router.push("/home");
     }
-    
-    
-  
+
+    console.log("Login exitoso, ¡Bienvenido!", data);
+  } else {
+    setError(data.message || "Error al iniciar sesión.");
+  }
+} catch (error) {
+  setError("Error de conexión con el servidor.");
+  console.error("Error en la solicitud:", error);
+}
 };
 
   return (
@@ -264,13 +279,13 @@ export default function LoginPage() {
                         <label className="text-black-500 font-medium p-5">Apellidos</label>
                         <InfoTooltip message="Ingresa tu apellido paterno seguido del apellido materno." />
                         <input type="text" name="apellidos" placeholder="Apellidos (Paterno y Materno)" className="w-full p-3 mb-4 border rounded-lg"
-                        value={formData.apellidoPaterno} onChange={handleInputChange} required />
+                        value={formData.apellidos} onChange={handleInputChange} required />
                       </div>
 
                       <div>
                         <label className="text-black-500 font-medium p-5">Email</label>
                         <InfoTooltip message="Ingresa el correo institucional, este ha sido dado de alta en la universidad" />
-                        <input type="correo" name="correo" placeholder="Email" className="w-full p-3 mb-4 border rounded-lg"
+                        <input type="email" name="correo" placeholder="Email" className="w-full p-3 mb-4 border rounded-lg"
                         value={formData.correo} onChange={handleInputChange} required />
                       </div>
 
@@ -312,6 +327,8 @@ export default function LoginPage() {
                           <option value="Contaduría">Contaduría</option>
                           <option value="Psicología">Psicología</option>
                           <option value="Informática Administrativa">Informática Administrativa</option>
+                          <option value="Docente">Docente</option>
+                          <option value="Administrativo">Administrativo</option>
                       </select>
                       </div>
 
