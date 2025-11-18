@@ -30,7 +30,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {authenticated || pathname === "/login" ? <main className="flex-1">{children}</main> : null}
+        {authenticated || ["/", "/login", "/register"].includes(pathname) ? (
+  <main className="flex-1">{children}</main>
+) : null}
+
       </body>
     </html>
   );

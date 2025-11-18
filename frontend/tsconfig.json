@@ -21,7 +21,15 @@
       {
         "name": "next"
       }
-    ]
+    ],
+
+    // --- LÍNEAS AÑADIDAS ---
+    "baseUrl": ".",
+    "paths": {
+      "@/components/*": ["components/*"]
+    }
+    // --- FIN DE LÍNEAS AÑADIDAS ---
+
   },
   "include": [
     "next-env.d.ts",
@@ -32,4 +40,5 @@
   "exclude": [
     "node_modules"
   ]
+  
 }

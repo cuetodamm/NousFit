@@ -1,15 +1,31 @@
 "use client";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Chart as ChartJS, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend, Filler } from "chart.js";
+import {
+  Chart as ChartJS,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Tooltip,
+  Legend,
+  Filler,
+} from "chart.js";
 import { Line } from "react-chartjs-2";
 import { CgMenuRound } from "react-icons/cg";
 import CryptoJS from "crypto-js";
 
-// Registrar componentes de Chart.js
-ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend, Filler);
+ChartJS.register(
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Tooltip,
+  Legend,
+  Filler
+);
 
-const AES_SECRET_KEY = "3d9c1b79641bb1355b25a38a3f98487fccb3bd59c2692c56de1a464694feaa85"; // ⚠️ Usa una clave segura desde `.env`
+const AES_SECRET_KEY = process.env.NEXT_PUBLIC_AES_KEY;
 
 function Sidebar() {
   const [isOpen, setOpen] = useState(false);
@@ -30,13 +46,25 @@ function Sidebar() {
       <button className="p-4" onClick={() => setOpen(!isOpen)}>
         <CgMenuRound className="text-5xl" />
       </button>
-      <aside className={`sidebar fixed top-0 left-0 h-screen w-64 p-6 text-white transform ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      } transition-transform duration-400 bg-gradient-to-r from-gray-800 via-gray-900 to-black shadow-lg`}>
+      <aside
+        className={`sidebar fixed top-0 left-0 h-screen w-64 p-6 text-white transform ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } transition-transform duration-400 bg-gradient-to-r from-gray-800 via-gray-900 to-black shadow-lg`}
+      >
         <ul className="space-y-4">
-          <li><a href="/dashboard" className="hover:underline">Dashboard</a></li>
-          <li><a className="hover:underline">Asistencia</a></li>
-          <li><a href="/login" className="hover:underline">Salir</a></li>
+          <li>
+            <a href="/dashboard" className="hover:underline">
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a className="hover:underline">Asistencia</a>
+          </li>
+          <li>
+            <a href="/login" className="hover:underline">
+              Salir
+            </a>
+          </li>
         </ul>
       </aside>
     </div>
@@ -49,66 +77,70 @@ export default function Dashboard() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadStatus, setUploadStatus] = useState("");
 
+  // 🔹 TEMPORAL: evita romper la app mientras definimos bien el endpoint real
   useEffect(() => {
-    async function fetchUsuario() {
-      try {
-        const response = await axios.get("/api/auth/register");
-        setUsuario(response.data.usuario);
-      } catch (err) {
-        console.error("Error al obtener el usuario:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchUsuario();
+    setLoading(false);
   }, []);
 
   const encryptImage = (imageBase64) => {
+    if (!AES_SECRET_KEY) {
+      console.error("❌ No existe la clave AES en el .env.local");
+      return null;
+    }
+
     return CryptoJS.AES.encrypt(imageBase64, AES_SECRET_KEY).toString();
   };
 
-  const handleImageUpload = async (event) => {
+  const handleImageUpload = (event) => {
     const file = event.target.files[0];
-    if (!file || !usuario) return;
-    
+    if (!file) return;
+
     const reader = new FileReader();
     reader.readAsDataURL(file);
+
     reader.onload = () => {
-      setSelectedImage(reader.result.split(",")[1]); 
+      const base64 = reader.result.split(",")[1];
+      setSelectedImage(base64);
     };
   };
 
   const handleSaveImage = async () => {
     if (!selectedImage || !usuario) {
-      setUploadStatus("⚠️ No hay imagen seleccionada.");
+      setUploadStatus("⚠️ No hay imagen o usuario.");
       return;
     }
 
     const encryptedImage = encryptImage(selectedImage);
+    if (!encryptedImage) return;
+
     const formData = new FormData();
     formData.append("imagen", encryptedImage);
     formData.append("correo", usuario.correo);
 
     try {
-
-    const response = await axios.post("/api/auth/uploadBiometric", formData);
-    setUploadStatus(response.data.message);
-  } catch (error) {
-    setUploadStatus("❌ Error al guardar la imagen.");
-    console.error("Error:", error);
-  }
-};
+      const response = await axios.post(
+        "/api/auth/uploadBiometric",
+        formData
+      );
+      setUploadStatus(response.data.message);
+    } catch (error) {
+      console.error("Error al guardar biométrico:", error);
+      setUploadStatus("❌ Error al guardar la imagen.");
+    }
+  };
 
   const asistenciaData = {
     labels: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"],
-    datasets: [{
-      label: "Asistencias semanales",
-      data: [50, 65, 40, 55, 70], 
-      borderColor: "#2196F3",
-      backgroundColor: "rgba(33, 150, 243, 0.1)",
-      fill: true,
-      tension: 0.3,
-    }]
+    datasets: [
+      {
+        label: "Asistencias semanales",
+        data: [50, 65, 40, 55, 70],
+        borderColor: "#2196F3",
+        backgroundColor: "rgba(33, 150, 243, 0.1)",
+        fill: true,
+        tension: 0.3,
+      },
+    ],
   };
 
   return (
@@ -118,21 +150,40 @@ export default function Dashboard() {
           <Sidebar />
           <main className="flex-1 p-6 w-full">
             <h2 className="text-2xl font-bold">Bienvenido al Dashboard</h2>
-            {loading ? <p>Cargando datos...</p> : usuario && <p>Bienvenido, <strong>{usuario.nombre}</strong> 👋</p>}
-            <p className="text-gray-600">Gestiona tu asistencia y registro biométrico aquí.</p>
 
-             <h2 className="mt-6 text-lg font-semibold">Subir imagen para registro biométrico</h2>
+            {!usuario ? (
+              <p>Cargando datos...</p>
+            ) : (
+              <p>
+                Bienvenido, <strong>{usuario.nombre}</strong> 👋
+              </p>
+            )}
+
+            <p className="text-gray-600">
+              Gestiona tu asistencia y registro biométrico aquí.
+            </p>
+
+            <h2 className="mt-6 text-lg font-semibold">
+              Subir imagen para registro biométrico
+            </h2>
+
             <input type="file" accept="image/*" onChange={handleImageUpload} />
+
             {selectedImage && (
-  <button onClick={handleSaveImage} className="mt-4 p-2 bg-blue-500 text-white rounded">
-    Guardar Imagen
-  </button>
-)}
-{uploadStatus && <p>{uploadStatus}</p>}
+              <button
+                onClick={handleSaveImage}
+                className="mt-4 p-2 bg-blue-500 text-white rounded"
+              >
+                Guardar Imagen
+              </button>
+            )}
 
+            {uploadStatus && <p>{uploadStatus}</p>}
 
+            <h2 className="mt-6 text-lg font-semibold">
+              Asistencias semanales
+            </h2>
 
-            <h2 className="mt-6 text-lg font-semibold">Asistencias semanales</h2>
             <div className="chart-container h-64">
               <Line data={asistenciaData} />
             </div>
