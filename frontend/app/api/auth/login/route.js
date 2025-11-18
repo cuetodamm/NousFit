@@ -1,9 +1,10 @@
+// api/auth/login/route.js
 import { NextResponse } from "next/server";
 import prisma from "../../../../lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "clave-secreta-temp"; // Usa variable de entorno en producción
+const JWT_SECRET = process.env.JWT_SECRET || "clave-secreta-temp";
 
 export async function POST(req) {
   try {
@@ -29,7 +30,6 @@ export async function POST(req) {
       );
     }
 
-    // 🔐 Generar el token incluyendo `esAdmin`
     const token = jwt.sign(
       {
         id: user.id,
@@ -40,7 +40,6 @@ export async function POST(req) {
       { expiresIn: "1d" }
     );
 
-    // ✅ 🔹 Enviar `usuario` completo en la respuesta
     return NextResponse.json(
       {
         message: "Login exitoso",
@@ -54,7 +53,6 @@ export async function POST(req) {
       },
       { status: 200 }
     );
-
   } catch (error) {
     console.error("Error interno en el inicio de sesión:", error);
     return NextResponse.json(
@@ -63,4 +61,3 @@ export async function POST(req) {
     );
   }
 }
-
