@@ -1,15 +1,31 @@
 "use client";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Chart as ChartJS, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend, Filler } from "chart.js";
+import {
+  Chart as ChartJS,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Tooltip,
+  Legend,
+  Filler,
+} from "chart.js";
 import { Line } from "react-chartjs-2";
 import { CgMenuRound } from "react-icons/cg";
 import CryptoJS from "crypto-js";
 
-// Registrar componentes de Chart.js
-ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend, Filler);
+ChartJS.register(
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Tooltip,
+  Legend,
+  Filler
+);
 
-const AES_SECRET_KEY = "3d9c1b79641bb1355b25a38a3f98487fccb3bd59c2692c56de1a464694feaa85"; // ⚠️ Usa una clave segura desde `.env`
+const AES_SECRET_KEY = process.env.NEXT_PUBLIC_AES_KEY;
 
 function Sidebar() {
   const [isOpen, setOpen] = useState(false);
@@ -30,13 +46,25 @@ function Sidebar() {
       <button className="p-4" onClick={() => setOpen(!isOpen)}>
         <CgMenuRound className="text-5xl" />
       </button>
-      <aside className={`sidebar fixed top-0 left-0 h-screen w-64 p-6 text-white transform ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      } transition-transform duration-400 bg-gradient-to-r from-gray-800 via-gray-900 to-black shadow-lg`}>
+      <aside
+        className={`sidebar fixed top-0 left-0 h-screen w-64 p-6 text-white transform ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } transition-transform duration-400 bg-gradient-to-r from-gray-800 via-gray-900 to-black shadow-lg`}
+      >
         <ul className="space-y-4">
-          <li><a href="/dashboard" className="hover:underline">Dashboard</a></li>
-          <li><a className="hover:underline">Asistencia</a></li>
-          <li><a href="/login" className="hover:underline">Salir</a></li>
+          <li>
+            <a href="/dashboard" className="hover:underline">
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a className="hover:underline">Asistencia</a>
+          </li>
+          <li>
+            <a href="/login" className="hover:underline">
+              Salir
+            </a>
+          </li>
         </ul>
       </aside>
     </div>
@@ -80,7 +108,7 @@ export default function Dashboard() {
 
   const handleSaveImage = async () => {
     if (!selectedImage || !usuario) {
-      setUploadStatus("⚠️ No hay imagen seleccionada.");
+      setUploadStatus("No hay imagen seleccionada");
       return;
     }
 
@@ -94,7 +122,7 @@ export default function Dashboard() {
     const response = await axios.post("/api/auth/uploadBiometric", formData);
     setUploadStatus(response.data.message);
   } catch (error) {
-    setUploadStatus("❌ Error al guardar la imagen.");
+    setUploadStatus("Error al guardar la imagen.");
     console.error("Error:", error);
   }
 };

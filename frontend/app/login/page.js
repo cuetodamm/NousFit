@@ -1,414 +1,343 @@
-"use client";                                             // Importante para usar hooks en Next.js
+// app/login/page.js
+"use client";
 
-import { useState, useEffect } from "react";
-import { AiOutlineQuestionCircle } from "react-icons/ai";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-const InfoTooltip = ({ message }) => {
-  const [visible, setVisible] = useState(false);
-
-  return (
-    <div className="relative inline-block">
-      <button
-        className="text-xl bg-transparent  cursor-pointer"
-        onClick={() => setVisible(!visible)}
-      >
-        <AiOutlineQuestionCircle className="borderquest"/>
-      </button>
-
-      {visible && (
-        <div className="absolute left-full top-0 ml-2 question text-black-500 text-sm px-3 py-2 rounded-md shadow-lg w-52">
-          {message}
-        </div>
-      )}
-    </div>
-  );
-};
-
-const InfoTooltip2 = ({ message }) => {
-  const [visible, setVisible] = useState(false);
-
-  return (
-    <div className="relative inline-block">
-      <button
-        className="text-xl bg-transparent  cursor-pointer"
-        onClick={() => setVisible(!visible)}
-      >
-        <AiOutlineQuestionCircle className="borderquest2"/>
-      </button>
-
-      {visible && (
-        <div className="absolute left-full top-0 ml-2 question2 text-black-500 text-sm px-3 py-2 rounded-md shadow-lg w-52">
-          {message}
-        </div>
-      )}
-    </div>
-  );
-};
+import {
+  Mail,
+  Lock,
+  Phone,
+  MapPin,
+  Facebook,
+  Eye,
+  EyeOff,
+  Loader2,
+} from "lucide-react";
+import { motion } from "framer-motion";
+// Usamos la ruta relativa que sí funciona
+import InfoTooltip from "../components/InfoTooltip.jsx";
 
 export default function LoginPage() {
-  const [isLogin, setIsLogin] = useState(true);           //Nos permitira alternar entre botones de inicio de sesión y registro
-  const [step, setStep] = useState(1);                    //Maneja el paso actual en el registro
-  const [error, setError] = useState("");
-  const [correo, setCorreo] = useState("");
-  const [password, setPassword] = useState("");
-  const [formData, setFormData] = useState({
-    nombre: "",
-    apellidos: "",
-    correo: "",
-    password: "",
-    noCuenta: "",
-    carrera: "",
-    turno: "",
-    genero: "",
-    numeroTutor: "",
-    credencialUniversitaria: null,
-    ineTutor: null,
-    cartaResponsiva: null,
-    certificadoMedico: null
-  });
+  const [form, setForm] = useState({ correo: "", password: "" });
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const [isNewUser, setIsNewUser] = useState(null);
 
-  
-  const validateCorreo = (correo) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;           //Revisa que haya texto antes del @, despues de este caracter verifica que haya un punto y dominio
-    return regex.test(correo);                             //Validacion de emails con regex
-  }
-  
-  const handleInputChange = (e) => {                      //Manejo de cambios en cada campo
-    if (!e.target || !e.target.name) {
-      console.error("Error detectado: Inputn sin nombre detectado", e);
-      return;
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: null }));
     }
-    setFormData({
-       ... formData,
-        [e.target.name]: e.target.type === "file" ? e.target.files[0] : e.target.value
-    });
+  };
+
+  const validate = () => {
+    let newErrors = {};
+    if (!form.correo.includes("@")) newErrors.correo = "Correo no válido.";
+    if (form.password.length < 6)
+      newErrors.password = "La contraseña debe tener mínimo 6 caracteres.";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors((prev) => ({ 
+      correo: prev.correo, 
+      password: prev.password 
+    })); 
 
-    const formDataToSend = new FormData();
-    Object.keys(formData).forEach((key) => {
-      if (formData[key] !== null) {
-        formDataToSend.append(key, formData[key]);
-      }
-    });
+    if (!validate()) return;
+    setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/register", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
-        body: formDataToSend,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form), 
       });
 
-      // Verifica si la respuesta es válida antes de procesarla
-      if (!response.ok) {
-        console.error("Error en la solicitud:", response.statusText);
-        return;
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("usuario", JSON.stringify(data.usuario));
+
+        if (data.usuario.esAdmin) {
+          router.push("/dashboard");
+        } else {
+          router.push("/home");
+        }
+      } else {
+        setErrors({ general: data.message });
       }
-
-      const text = await response.text(); //Obtener texto antes de procesarlo como JSON
-      console.log("Respuesta del backend (texto):", text);
-
-      let data;
-      try {
-        data = JSON.parse(text); // Procesar JSON si la respuesta no está vacía
-      } catch (error) {
-        console.error("Error al parsear JSON:", error);
-        return;
-      }
-
-      console.log("Registro exitoso:", data);
-      window.location.href = "/login";
-
     } catch (error) {
-      console.error("Error en la conexión con el servidor:", error);
+      console.error("Error en la solicitud:", error);
+      setErrors({ general: "Error de conexión con el servidor." });
     }
+    
+    setIsLoading(false);
   };
 
-  const handleLogin = async (e) => {
-  e.preventDefault();
-  setError("");
-
-  if (!validateCorreo(correo)) {
-    setError("Correo no válido, intenta con otro.");
-    return;
-  }
-
-  try {
-  const response = await fetch("/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ correo, password }),
-  });
-
-  const data = await response.json();
-  console.log("Respuesta del backend:", data); // 🔥 Revisa si `usuario` está presente
-
-  if (response.ok) {
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("isNewUser", isNewUser);
-
-    if (!data.usuario) {
-      console.error("Error: usuario no recibido en la respuesta.");
-      setError("Error: No se pudo recuperar el usuario, inténtalo de nuevo.");
-      return;
-    }
-
-    localStorage.setItem("usuario", JSON.stringify(data.usuario));
-
-    if (data.usuario.esAdmin) {
-      router.push("/dashboard");
-    } else {
-      router.push("/home");
-    }
-
-    console.log("Login exitoso, ¡Bienvenido!", data);
-  } else {
-    setError(data.message || "Error al iniciar sesión.");
-  }
-} catch (error) {
-  setError("Error de conexión con el servidor.");
-  console.error("Error en la solicitud:", error);
-}
-};
-
   return (
-    
-    <div className=" relative h-screen overflow-hidden">
-      <div className="relative hex-pattern">
+    <div
+      className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 py-10 relative overflow-hidden"
+      style={{
+        backgroundImage:
+          "radial-gradient(circle at 30% 20%, rgba(255,255,255,0.11) 0%, rgba(0,0,0,0.15) 60%), linear-gradient(135deg, #2E4F2F 0%, #3A6F3A 45%, #2E4F2F 100%)",
+      }}
+    >
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.22 }}
+        transition={{ duration: 2 }}
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.18), rgba(0,0,0,0.18))",
+        }}
+      />
+      <motion.div
+        initial={{ opacity: 0, y: 60 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        className="
+          w-full max-w-5xl bg-white/95 rounded-3xl shadow-2xl flex flex-col md:flex-row
+          overflow-hidden backdrop-blur-2xl border border-white/30
+          mb-10
+        "
+      >
+        <motion.div
+          initial={{ x: -40, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.9 }}
+          className="
+            hidden md:flex flex-col items-center justify-center w-1/2 p-12
+            bg-gradient-to-b from-[#2E4F2F] to-[#3A6F3A]
+            text-white text-center
+          "
+        >
+          <motion.img
+            initial={{ scale: 0.7, opacity: 0, filter: "blur(8px)" }}
+            animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
+            transition={{ duration: 0.9 }}
+            src="/UAEMex_escudo.png" 
+            alt="Escudo UAEM"
+            width={240}
+            height={240}
+            className="drop-shadow-2xl animate-pulse-slow"
+          />
+          <motion.h1
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-4xl font-bold mt-6 tracking-wide"
+          >
+            Bienvenido nuevamente
+          </motion.h1>
+          <motion.p
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-lg mt-3 max-w-xs opacity:90 leading-relaxed"
+          >
+            Accede al sistema de control de asistencia del gimnasio del
+            Centro Universitario UAEM Ecatepec.
+          </motion.p>
+        </motion.div>
+        <div className="w-full md:w-1/2 p-8 sm:p-10 bg-white">
+          <motion.h2
+            initial={{ opacity: 0, y: -20, filter: "blur(6px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 0.6 }}
+            className="text-3xl sm:text-4xl font-bold text-center text-[#2E4F2F] mb-6"
+          >
+            Iniciar Sesión
+          </motion.h2>
 
+          {errors.general && (
+            <motion.p
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-red-600 text-sm text-center mb-4 bg-red-100 p-3 rounded-lg"
+            >
+              {errors.general}
+            </motion.p>
+          )}
 
-        <div className="h-screen flex p-5">
-
-          <div className="w-1/2 flex flex-col items-justify justify-center box1  text-black-500 p-7">
-            <div>
-              <div className="box items-justify justify-center p-7">
-                <h1 className="text-2xl text-center font-bold mb-4">¡Bienvenido a NousFit!</h1>
-                <p className="text-lg  max-w-md">
-                  Para poder ingresar debes colocar correo y contraseña
-                  previamente registrados.
-                </p>
-                <p className="text-lg  max-w-md">
-                  ¿No es posible iniciar sesion? Revisa tus datos.
-                </p>
-                <p className="text-lg text-justify max-w-md">
-                  ¿Sigues sin poder acceder? ¡Prueba registrandote!
-                </p>
-                <p className="text-lg text-justify max-w-md">
-                  En cada signo de interrogación podrás ver información de ayuda para llenar en cada campo, solo dale click al icono.
-                </p>
-                <p className="text-lg text-justify max-w-md">
-                  Para mayor información de los documentos a digitalizar, puedes acercarte con el personal 
-                  responsable del gimnasio universitario.
-                </p>
+          <form onSubmit={handleSubmit} className="space-y-7">
+            {/* CORREO */}
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold">
+                Correo institucional
+                <InfoTooltip message="Ingresa tu correo institucional registrado." />
+              </label>
+              <div className="relative">
+                <Mail
+                  size={20}
+                  className={`
+                    absolute left-3 top-3 text-gray-400 transition-all duration-300
+                    ${
+                      form.correo ? "opacity-0 scale-75" : "opacity-100 scale-100"
+                    }
+                  `}
+                />
+                <motion.input
+                  whileFocus={{ scale: 1.02 }}
+                  type="email"
+                  name="correo"
+                  value={form.correo}
+                  onChange={handleInputChange}
+                  className="
+                    w-full pl-12 pr-3 py-3 rounded-xl border-2 border-[#2E4F2F]
+                    focus:ring-[4px] focus:ring-[#6aba55]
+                    transition-all duration-300 bg-white
+                  "
+                />
               </div>
-              <div className="flex justify-center items-center">
-                <img src="/UAEMex_escudo.png" className="escudo" />
+              {errors.correo && (
+                <p className="text-red-600 text-sm">{errors.correo}</p>
+              )}
+            </div>
+
+            {/* CONTRASEÑA */}
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold">
+                Contraseña
+                <InfoTooltip message="Ingresa la contraseña que creaste en tu registro." />
+              </label>
+              <div className="relative">
+                <Lock
+                  size={20}
+                  className={`
+                    absolute left-3 top-3 text-gray-400 transition-all duration-300
+                    ${
+                      form.password
+                        ? "opacity-0 scale-75"
+                        : "opacity-100 scale-100"
+                    }
+                  `}
+                />
+                <motion.input
+                  whileFocus={{ scale: 1.02 }}
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={form.password}
+                  onChange={handleInputChange}
+                  className="
+                    w-full pl-12 pr-12 py-3 rounded-xl border-2 border-[#2E4F2F]
+                    focus:ring-[4px] focus:ring-[#6aba55]
+                    transition-all duration-300 bg-white
+                  "
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-3 text-gray-500 hover:text-gray-700 cursor-pointer"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
               </div>
+              {errors.password && (
+                <p className="text-red-600 text-sm">{errors.password}</p>
+              )}
+            </div>
+
+            <div className="text-right text-sm -mt-3">
+              <a
+                href="/forgot-password"
+                className="font-semibold text-[#2E4F2F] hover:underline"
+              >
+                ¿Olvidaste tu contraseña?
+              </a>
+            </div>
+
+            <motion.button
+              whileHover={{ scale: isLoading ? 1 : 1.05 }}
+              whileTap={{ scale: isLoading ? 1 : 0.93 }}
+              transition={{ duration: 0.15 }}
+              type="submit"
+              disabled={isLoading}
+              className="
+                w-full bg-[#3A6F3A] text-white py-3 rounded-xl text-lg font-semibold
+                shadow-md hover:shadow-xl transition-all duration-300
+                flex justify-center items-center
+                disabled:opacity-75 disabled:cursor-not-allowed
+              "
+            >
+              {isLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : (
+                "Ingresar"
+              )}
+            </motion.button>
+          </form>
+
+          <p className="text-center mt-6 text-sm">
+            ¿No tienes cuenta?
+            <a
+              href="/register"
+              className="ml-1 text-[#2E4F2F] font-semibold hover:underline"
+            >
+              Registrarme
+            </a>
+          </p>
+        </div>
+      </motion.div>
+
+      <motion.footer
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+        className="
+          w-full max-w-2xl bg-white/95 backdrop-blur-lg rounded-xl p-8 
+          shadow-inner text-gray-700 text-sm border border-white/20
+          flex flex-col
+        "
+      >
+        <div className="w-full flex flex-col md:flex-row justify-between">
+          <div className="mb-6 md:mb-0 text-center md:text-left">
+            <h3 className="text-lg font-bold text-[#2E4F2F] mb-3">
+              Contáctanos
+            </h3>
+            <div className="flex items-center justify-center md:justify-start mb-2">
+              <Phone className="w-4 h-4 mr-2 text-[#2E4F2F]" />
+              <span>+52 55 5787 3626</span>
+            </div>
+            <div className="flex items-center justify-center md:justify-start mb-2">
+              <Mail className="w-4 h-4 mr-2 text-[#2E4F2F]" />
+              <span>difusionuaemecate@gmail.com</span>
+            </div>
+            <div className="flex items-start justify-center md:justify-start">
+              <MapPin className="w-4 h-4 mr-2 mt-1 text-[#2E4F2F] flex-shrink-0" />
+              <address className="not-italic">
+                Dentro de la UAEM, José Revuelta 17, Tierra Blanca, Ecatepec de
+                Morelos, Méx. C.P. 55020
+              </address>
             </div>
           </div>
-          <div className="w-1/2 flex flex-col items-justify justify-center box p-7">
-            {/* Botones dinámicos para alternar entre login y registro */}
-            <div className="relative mb-6 flex items-justify justify-center cursor-pointer">
-              <button
-                className={`px-4 py-2 text-lg font-semibold rounded-md transition cursor-pointer ${
-                  isLogin ? "buttonSI text-black-500 border" : "buttonSIi bg-transparent text-black-500 border"
-                }`}
-                onClick={() => {
-                  setIsLogin(true);
-                  setStep(1);
-                }}
+          <div className="text-center">
+            <h3 className="text-lg font-bold text-[#2E4F2F] mb-3">Síguenos</h3>
+            <div className="flex justify-center">
+              <a
+                href="https://www.facebook.com/profile.php?id=100057592562538&locale=es_LA"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#1877F2] hover:text-[#1877F2] transition"
               >
-                Ingresar
-              </button>
-
-              <button
-                className={`px-4 py-2 text-lg font-semibold rounded-md transition ml-4  cursor-pointer ${
-                  !isLogin ? "buttonSU text-black-500 border" : " buttonSUu bg-transparent text-black-500 border"
-                }`}
-                onClick={() => {
-                  setIsLogin(false);
-                  setStep(1);
-                }}
-              >
-                Registrarse
-              </button>
-            </div>
-            <div className= "relative mb-6 flex items-center justify-center">
-              {/* Formulario de Login */}
-              {isLogin ? (
-                <form onSubmit={handleLogin} className=" p-8 rounded-lg w-96">
-                  <h2 className="text-2xl font-bold mb-6 text-center">Iniciar Sesión</h2>
-
-                  {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
-                  <div>
-                    <label className="text-black-500 font-medium p-5">Correo Electrónico</label>
-                    <InfoTooltip2 message="Ingresa tu correo institucional para iniciar de sesión." />
-                    <input type="correo" name="correo" placeholder="Correo electrónico" className="w-full p-3 mb-4 border rounded-lg"
-                    value={correo} onChange={(e) => setCorreo(e.target.value)} required />
-                  </div>
-
-                  <div>
-                    <label className="text-black-500 font-medium p-5">Contraseña</label>
-                    <InfoTooltip2 message="Recuerdas la contraseña que ingresaste en el registro, ¿Verdad?." />
-                    <input type="password" name="password" placeholder="Contraseña" className="w-full p-3 mb-4 border rounded-lg"
-                    value={password} onChange={(e) => setPassword(e.target.value)} required />
-                  </div>
-
-                  <button type="submit" className="w-full buttonSI text-blalck-500 py-2 rounded-lg cursor-pointer">Iniciar Sesión</button>
-                </form>
-              ) : (
-                <form onSubmit={handleSubmit} className=" p-8 rounded-lg w-96">
-                  <h2 className="text-2xl font-bold mb-6 text-center ">Registro</h2>
-
-                  {/* Paso 1: Datos personales y académicos */}
-                  {step === 1 && (
-                    <>
-                      <div>
-                        <label className="text-black-500 font-medium p-5">Nombre(s)</label>
-                        <InfoTooltip message="Ingresa tu nombre o nombres si tienes mas de uno." />
-                        <input type="text" name="nombre" placeholder="Nombre" className="w-full p-3 mb-4 border rounded-lg"
-                        value={formData.nombre} onChange={handleInputChange} required />
-                      </div>
-
-                      <div>
-                        <label className="text-black-500 font-medium p-5">Apellidos</label>
-                        <InfoTooltip message="Ingresa tu apellido paterno seguido del apellido materno." />
-                        <input type="text" name="apellidos" placeholder="Apellidos (Paterno y Materno)" className="w-full p-3 mb-4 border rounded-lg"
-                        value={formData.apellidos} onChange={handleInputChange} required />
-                      </div>
-
-                      <div>
-                        <label className="text-black-500 font-medium p-5">Email</label>
-                        <InfoTooltip message="Ingresa el correo institucional, este ha sido dado de alta en la universidad" />
-                        <input type="email" name="correo" placeholder="Email" className="w-full p-3 mb-4 border rounded-lg"
-                        value={formData.correo} onChange={handleInputChange} required />
-                      </div>
-
-                      <div>
-                        <label className="text-black-500 font-medium p-5">Contraseña</label>
-                        <InfoTooltip message="Entre mas dificil sea es mas complicado filtrarla, pero acuerdate de guardarla." />
-                        <input type="password" name="password" placeholder="Contraseña" className="w-full p-3 mb-4 border rounded-lg"
-                        value={formData.password} onChange={handleInputChange} required />
-                      </div>
-
-                      <div>
-                        <label className="text-black-500 font-medium p-5">Número de Cuenta</label>
-                        <InfoTooltip message="El número de cuenta es el identificador como estudiantes de la Universidad." />
-                        <input type="number" name="noCuenta" placeholder="Número de Cuenta" className="w-full p-3 mb-4 border rounded-lg"
-                        value={formData.noCuenta} onChange={handleInputChange} required />
-                      </div>
-
-                      <button type="button" className="w-full buttonSU
-                      text-black-500 py-2 rounded-lg cursor-pointer" onClick={() => setStep(2)}>Siguiente</button>
-
-                    </>
-                  )}
-
-                  {/* Paso 2: Documentos y datos del tutor */}
-                  {step === 2 && (
-                    <>
-
-                      {/* Datos académicos */}
-
-                      <div>
-                        <label className="text-black-500 font-medium p-5">Licenciatura</label>
-                        <InfoTooltip message="Ingresa la carrera en la que estas estudiando." />
-                        <select name="carrera" placeholder="Carrera" className="w-full p-3 mb-4 border rounded-lg"
-                        value={formData.carrera} onChange={handleInputChange} required >
-                          <option value="" disabled>Selecciona tu carrera</option>
-                          <option value="Ingeniería en Computación">Ingeniería en Computación</option>
-                          <option value="Administración">Administración</option>
-                          <option value="Derecho">Derecho</option>
-                          <option value="Contaduría">Contaduría</option>
-                          <option value="Psicología">Psicología</option>
-                          <option value="Informática Administrativa">Informática Administrativa</option>
-                          <option value="Docente">Docente</option>
-                          <option value="Administrativo">Administrativo</option>
-                      </select>
-                      </div>
-
-                      <div>
-                        <label className="text-black-500 font-medium p-5">Turno</label>
-                        <InfoTooltip message="No todas las carreras tienen la variedad de turnos, elige el turno en el que estás depende a tu carrera" />
-                        <select name="turno" placeholder="Selecciona uno" className="w-full p-3 mb-4 border rounded-lg"
-                        value={formData.turno} onChange={handleInputChange} required >
-                          <option value="" disabled>Selecciona uno</option>
-                          <option value="Matutino">Matutino</option>
-                          <option value="Verpertino">Vespertino</option>
-                          <option value="Diurno">Diurno</option>
-                      </select>
-                      </div>
-
-                      <div>
-                        <label className="text-black-500 font-medium p-5">Género</label>
-                        <InfoTooltip message="Quisieramos ser inclusivos pero en las estadisticas solo piden Hombre y mujer." />
-                        <select name="genero" placeholder="Selecciona uno" className="w-full p-3 mb-4 border rounded-lg"
-                        value={formData.genero} onChange={handleInputChange} required >
-                          <option value="" disabled>Selecciona uno</option>
-                          <option value="Hombre">Hombre</option>
-                          <option value="Mujer">Mujer</option>
-                      </select>
-                      </div>
-
-                      <div>
-                        <label className="text-black-500 font-medium p-5">Número de Emergencia</label>
-                        <InfoTooltip message="Es el numero de emergencia para cualquier situación, tengamos cuidado dentro del espacio." />
-                        <input type="number" name="numeroTutor" placeholder="Número del tutor" className="w-full p-3 mb-4 border rounded-lg"
-                        value={formData.numeroTutor} onChange={handleInputChange} />
-                      </div>
-
-                      <button type="button" className="w-full mb-6 buttonSI text-black-500 py-2 rounded-lg cursor-pointer" onClick={() => setStep(1)}>Regresar</button>
-
-                      <button type="button" className="w-full buttonSU text-black-500 py-2 rounded-lg cursor-pointer" onClick={() => setStep(3)}>Siguiente</button>
-                    </>
-                  )}  
-                  {step === 3 && (
-                    <>
-
-                      <div>
-                        <label className="text-black-500 font-medium p-5">Credencial Universitaria</label>
-                        <InfoTooltip message="Deberas de escanear tu credencial universitaria en un formato PDF y anexarlo." />
-                        <input type="file" name="credencialUniversitaria" className="w-full p-3 mb-4 border rounded-lg" accept="application/pdf"
-                        onChange={(e) => setFormData({ ...formData, [e.target.name]: e.target.files[0] })} />
-                      </div>
-
-                      <div>
-                        <label className="text-black-500 font-medium p-5">Ine del Tutor</label>
-                        <InfoTooltip message="Este documento es para tener en cuenta la persona de emergencia para cualquier situación dentro del gimnasio." />
-                        <input type="file" name="ineTutor" className="w-full p-3 mb-4 border rounded-lg" accept="application/pdf"
-                        onChange={(e) => setFormData({ ...formData, [e.target.name]: e.target.files[0] })} required />
-                      </div>
-
-                      <div>
-                        <label className="text-black-500 font-medium p-5">Carta Responsiva</label>
-                        <InfoTooltip message="Deberas llenar y firmar lo correspondiente y anexarlo dentro de un PDF." />
-                        <input type="file" name="cartaResponsiva" className="w-full p-3 mb-4 border rounded-lg" accept="application/pdf"
-                        onChange={(e) => setFormData({ ...formData, [e.target.name]: e.target.files[0] })} required />
-                      </div>
-
-                      <div>
-                        <label className="text-black-500 font-medium p-5">Certificado Médico</label>
-                        <InfoTooltip message="IAntes de empezar una vida saludable, es necesario tener en cuenta las actividades que nos afecten nuestra salud con algun especialista." />
-                        <input type="file" name="certificadoMedico" className="w-full p-3 mb-4 border rounded-lg" accept="application/pdf"
-                        onChange={(e) => setFormData({ ...formData, [e.target.name]: e.target.files[0] })} required />
-                      </div>
-
-                      <button type="button" className="w-full mb-6 buttonSI text-black-500 py-2 rounded-lg cursor-pointer" onClick={() => setStep(2)}>Regresar</button>
-
-                      <button type="submit" className="w-full buttonSU text-black-500 py-2 rounded-lg cursor-pointer">Registrarse</button>
-                    </>
-                  )}  
-                </form>
-              )}
+                <Facebook className="w-6 h-6" />
+              </a>
             </div>
           </div>
         </div>
-      </div>
+        <div className="w-full text-center text-gray-500 text-xs mt-6 pt-6 border-t border-gray-300/50">
+          © 2025 NousFit. Todos los derechos reservados.
+        </div>
+      </motion.footer>
     </div>
   );
 }
