@@ -1,4 +1,4 @@
-// File: C:\Users\usuario\OneDrive\Desktop\Nousfit\NousFit\frontend\app\home\page.js
+// File: C:\Users\usuario\OneDrive\Desktop\Nousfit\frontend\app\home\page.js
 import * as entry from '../../../../app/home/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

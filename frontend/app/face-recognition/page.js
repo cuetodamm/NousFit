@@ -85,7 +85,7 @@ export default function FaceRecognition() {
   };
 
   const encryptImage = (imageBase64) => {
-    return CryptoJS.AES.encrypt(imageBase64, "3d9c1b79641bb1355b25a38a3f98487fccb3bd59c2692c56de1a464694feaa85").toString();
+    return CryptoJS.AES.encrypt(imageBase64, process.env.NEXT_PUBLIC_AES_SECRET_KEY).toString();
   };
 
   const processFaceRecognition = async () => {

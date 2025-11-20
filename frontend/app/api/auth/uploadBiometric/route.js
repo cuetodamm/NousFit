@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "../../../../lib/prisma";
 import CryptoJS from "crypto-js";
 
-const AES_SECRET_KEY = "3d9c1b79641bb1355b25a38a3f98487fccb3bd59c2692c56de1a464694feaa85"; // ⚠️ Usa una clave segura y guárdala en `.env`
+const AES_SECRET_KEY = process.env.AES_SECRET_KEY; 
 
 export async function POST(req) {
   try {

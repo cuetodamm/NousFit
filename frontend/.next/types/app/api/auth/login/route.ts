@@ -1,4 +1,4 @@
-// File: C:\Users\usuario\OneDrive\Desktop\Nousfit\NousFit\frontend\app\api\auth\login\route.js
+// File: C:\Users\usuario\OneDrive\Desktop\Nousfit\frontend\app\api\auth\login\route.js
 import * as entry from '../../../../../../app/api/auth/login/route.js'
 import type { NextRequest } from 'next/server.js'
 

@@ -25,7 +25,7 @@ ChartJS.register(
   Filler
 );
 
-const AES_SECRET_KEY = process.env.NEXT_PUBLIC_AES_KEY;
+const AES_SECRET_KEY = process.env.AES_SECRET_KEY;
 
 function Sidebar() {
   const [isOpen, setOpen] = useState(false);
@@ -78,18 +78,31 @@ export default function Dashboard() {
   const [uploadStatus, setUploadStatus] = useState("");
 
   useEffect(() => {
-    async function fetchUsuario() {
-      try {
-        const response = await axios.get("/api/auth/register");
-        setUsuario(response.data.usuario);
-      } catch (err) {
-        console.error("Error al obtener el usuario:", err);
-      } finally {
-        setLoading(false);
+  async function fetchUsuario() {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.warn("No hay token guardado");
+        return;
       }
+
+      const response = await axios.get("/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setUsuario(response.data.usuario);
+    } catch (err) {
+      console.error("Error al obtener el usuario:", err);
+    } finally {
+      setLoading(false);
     }
-    fetchUsuario();
-  }, []);
+  }
+
+  fetchUsuario();
+}, []);
+
 
   const encryptImage = (imageBase64) => {
     return CryptoJS.AES.encrypt(imageBase64, AES_SECRET_KEY).toString();
