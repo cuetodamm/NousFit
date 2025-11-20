@@ -335,7 +335,7 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="w-full text-center text-gray-500 text-xs mt-6 pt-6 border-t border-gray-300/50">
-          © 2025 NousFit. Todos los derechos reservados.
+          <p>© {new Date().getFullYear()} Nousfit. Todos los derechos reservados.</p>
         </div>
       </motion.footer>
     </div>

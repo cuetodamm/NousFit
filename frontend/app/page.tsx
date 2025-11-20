@@ -1,8 +1,13 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#42502B] via-[#489E31] to-[#42502B] p-4">
+    <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#42502B] via-[#489E31] to-[#42502B] p-4"
+    style={{
+        backgroundImage:
+          "radial-gradient(circle at 30% 20%, rgba(255,255,255,0.11) 0%, rgba(0,0,0,0.15) 60%), linear-gradient(135deg, #2E4F2F 0%, #3A6F3A 45%, #2E4F2F 100%)",
+      }}>
       
       {/* Escudo / logo */}
       <div className="mb-8">
@@ -27,14 +32,20 @@ export default function Home() {
 
       {/* Botones */}
       <div className="flex flex-col sm:flex-row gap-4">
-        <button className="bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-3 px-8 rounded-lg transition">
-          Iniciar sesión
-        </button>
-        <button className="bg-green-700 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition">
-          Registrarse
-        </button>
+        <Link href="/login" className="w-max">
+          <button className="bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-3 px-8 rounded-lg transition">
+            Iniciar sesión
+          </button>
+        </Link>
+        <Link href="/register" className="w-max">
+          <button className="bg-green-700 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition">
+            Registrarse
+          </button>
+        </Link>
       </div>
-
+      <div className="w-full text-center text-white text-xs mt-6 pt-6 border-t border-gray-300/50">
+        <p>© {new Date().getFullYear()} Nousfit. Todos los derechos reservados.</p>
+      </div>
     </main>
   );
 }
