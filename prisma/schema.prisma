@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Usuario {
@@ -11,7 +12,7 @@ model Usuario {
   nombre           String
   apellidos        String
   correo           String      @unique
-  contraseña      String
+  contraseña       String
   noCuenta         String      @unique
   carrera          String
   turno            String
@@ -30,7 +31,7 @@ model Documento {
   id         String       @id @default(uuid())
   usuarioId  String
   tipo       DocumentType
-  url        String       @unique
+  url        String       
   uploadedAt DateTime     @default(now())
   usuario    Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 }
