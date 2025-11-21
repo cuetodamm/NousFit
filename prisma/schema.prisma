@@ -8,32 +8,45 @@ datasource db {
 }
 
 model Usuario {
-  id               String      @id @default(uuid())
-  nombre           String
-  apellidos        String
-  correo           String      @unique
-  contraseña       String
-  noCuenta         String      @unique
-  carrera          String
-  turno            String
-  genero           String
-  numeroTutor      String?
+  id              String       @id @default(uuid())
+  nombre          String
+  apellidos       String
+  correo          String       @unique
+  contraseña      String
+  noCuenta        String       @unique
+  carrera         String
+  turno           String
+  genero          String
+  numeroTutor     String?
   datosBiometricos Json?
-  imagenDetectada  Json?
-  esAdmin          Boolean     @default(false)
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
-  documentos       Documento[]
-  logs             Log[]
+  imagenDetectada Json?
+  esAdmin         Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  // Relaciones
+  documentos      Documento[]
+  logs            Log[]
+  asistencias     Asistencia[] // <--- NUEVO: Relación con asistencias
+}
+
+// --- NUEVO MODELO PARA ASISTENCIA ---
+model Asistencia {
+  id        String   @id @default(uuid())
+  usuarioId String
+  fecha     DateTime @default(now())
+  
+  // Relación para traer los datos del alumno (nombre, carrera, etc.)
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 }
 
 model Documento {
-  id         String       @id @default(uuid())
-  usuarioId  String
-  tipo       DocumentType
-  url        String       
-  uploadedAt DateTime     @default(now())
-  usuario    Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  id        String       @id @default(uuid())
+  usuarioId String
+  tipo      DocumentType
+  url       String
+  uploadedAt DateTime    @default(now())
+  usuario   Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 }
 
 model Log {
