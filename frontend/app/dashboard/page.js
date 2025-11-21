@@ -66,7 +66,7 @@ function Sidebar() {
           <li><a className="hover:underline">Tablas</a></li>
           <ul className="space-y-4">
             <li><a href="/usuarios" className="hover:underline">Usuarios</a></li>
-            <li><a href="/asistencia" className="hover:underline">Registros</a></li>
+            <li><a href="/dashboard/asistencia" className="hover:underline">Registros</a></li>
             <li><a href="/logs" className="hover:underline">Logs</a></li>
             <li><a href="/face-recognition" className="hover:underline">Face ID</a></li>
           </ul>
